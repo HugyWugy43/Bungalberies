@@ -2,19 +2,43 @@ package org.example.shop.model;
 
 import jakarta.persistence.*;
 
+/**
+ * Сущность товара интернет-магазина.
+ * <p>
+ * Содержит основные данные о товаре: название, описание, цену и остаток на складе.
+ */
 @Entity
 @Table(name = "products")
 public class Product {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    /** Уникальный идентификатор товара. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Название товара. */
     private String name;
+
+    /** Описание товара. */
     private String description;
+
+    /** Цена товара. */
     private double price;
+
+    /** Количество товара на складе. */
     private int stock;
 
+    /** Конструктор по умолчанию. */
     public Product() {}
 
+    /**
+     * Создает товар с заданными параметрами.
+     *
+     * @param name        название товара
+     * @param description описание товара
+     * @param price       цена товара
+     * @param stock       остаток на складе
+     */
     public Product(String name, String description, double price, int stock) {
         this.name = name;
         this.description = description;

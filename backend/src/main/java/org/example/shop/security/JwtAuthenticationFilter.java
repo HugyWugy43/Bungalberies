@@ -14,16 +14,37 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+/**
+ * Фильтр аутентификации на основе JWT.
+ * <p>
+ * Извлекает токен из заголовка Authorization, проверяет его,
+ * а затем помещает данные аутентифицированного пользователя в SecurityContext.
+ */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserDetailsServiceImpl userDetailsService;
 
+    /**
+     * Создает фильтр JWT-аутентификации.
+     *
+     * @param jwtUtils утилита для работы с JWT
+     * @param userDetailsService сервис загрузки данных пользователя
+     */
     public JwtAuthenticationFilter(JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Обрабатывает входящий HTTP-запрос и выполняет JWT-аутентификацию.
+     *
+     * @param request     HTTP-запрос
+     * @param response    HTTP-ответ
+     * @param filterChain цепочка фильтров
+     * @throws ServletException если возникает ошибка сервлета
+     * @throws IOException      если возникает ошибка ввода-вывода
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -43,6 +64,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Извлекает JWT из заголовка Authorization.
+     *
+     * @param request HTTP-запрос
+     * @return строка токена или null, если токен отсутствует
+     */
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {

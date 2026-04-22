@@ -2,12 +2,23 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+/**
+ * Страница входа пользователя в систему.
+ * <p>
+ * Обеспечивает отправку учетных данных, получение токена и перенаправление
+ * пользователя на главную страницу после успешной авторизации.
+ */
 export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [message, setMessage] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  /**
+   * Отправляет форму авторизации на сервер.
+   *
+   * @param {Event} e событие отправки формы
+   */
   const submit = async (e) => {
     e.preventDefault();
     try {

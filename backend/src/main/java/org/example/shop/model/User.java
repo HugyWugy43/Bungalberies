@@ -2,19 +2,40 @@ package org.example.shop.model;
 
 import jakarta.persistence.*;
 
+/**
+ * Сущность пользователя системы.
+ * <p>
+ * Содержит данные для аутентификации, а также роль доступа.
+ */
 @Entity
 @Table(name = "users")
 public class User {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    /** Уникальный идентификатор пользователя. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Уникальное имя пользователя. */
     @Column(unique = true)
     private String username;
-    private String password;
-    private String role; // "ROLE_USER" или "ROLE_ADMIN"
 
+    /** Хешированный пароль пользователя. */
+    private String password;
+
+    /** Роль пользователя в системе, например ROLE_USER или ROLE_ADMIN. */
+    private String role;
+
+    /** Конструктор по умолчанию. */
     public User() {}
 
+    /**
+     * Создает пользователя с заданными данными.
+     *
+     * @param username имя пользователя
+     * @param password хешированный пароль
+     * @param role     роль пользователя
+     */
     public User(String username, String password, String role) {
         this.username = username;
         this.password = password;

@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Контроллер управления заказами.
+ * <p>
+ * Реализует создание заказа, получение списка заказов и просмотр заказа по идентификатору.
+ */
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -19,11 +24,27 @@ public class OrderController {
     private final OrderRepository orderRepo;
     private final ProductRepository productRepo;
 
+    /**
+     * Конструктор контроллера заказов.
+     *
+     * @param orderRepo   репозиторий заказов
+     * @param productRepo репозиторий товаров
+     */
     public OrderController(OrderRepository orderRepo, ProductRepository productRepo) {
         this.orderRepo = orderRepo;
         this.productRepo = productRepo;
     }
 
+    /**
+     * Оформляет заказ на основе переданного списка позиций.
+     * <p>
+     * Метод проверяет наличие товара на складе, уменьшает остатки,
+     * заполняет имя и цену позиции и сохраняет заказ в базе данных.
+     *
+     * @param items список позиций заказа
+     * @param user  авторизованный пользователь
+     * @return созданный заказ или сообщение об ошибке
+     */
     @PostMapping
     public ResponseEntity<?> placeOrder(@RequestBody List<OrderItem> items,
                                         @AuthenticationPrincipal UserDetailsImpl user) {
@@ -53,11 +74,22 @@ public class OrderController {
         }
     }
 
+    /**
+     * Возвращает список всех заказов.
+     *
+     * @return список заказов
+     */
     @GetMapping
     public List<Order> all() {
         return orderRepo.findAll();
     }
 
+    /**
+     * Возвращает заказ по идентификатору.
+     *
+     * @param id идентификатор заказа
+     * @return найденный заказ или статус 404
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Order> getOne(@PathVariable Long id) {
         return orderRepo.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());

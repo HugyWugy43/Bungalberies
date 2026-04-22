@@ -2,12 +2,21 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Административная панель для управления товарами.
+ * <p>
+ * Позволяет администратору просматривать каталог, добавлять новые товары,
+ * редактировать существующие и удалять записи из каталога.
+ */
 export default function AdminPanel() {
   const { role } = useAuth();
   const [products, setProducts] = useState([]);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Загружает список товаров при открытии компонента.
+   */
   useEffect(() => {
     api.get('/products').then(r => {
       setProducts(r.data);
@@ -22,14 +31,27 @@ export default function AdminPanel() {
     return <div>Доступно только для админа (нужен токен admin)</div>;
   }
 
+  /**
+   * Начинает редактирование выбранного товара.
+   *
+   * @param {Object} p объект товара
+   */
   function startEdit(p) {
     setEditing({ ...p });
   }
 
+  /**
+   * Отменяет редактирование товара.
+   */
   function cancelEdit() {
     setEditing(null);
   }
 
+  /**
+   * Сохраняет изменения в товаре.
+   * <p>
+   * Отправляет обновленные данные на сервер и синхронизирует локальный список товаров.
+   */
   async function saveEdit() {
     try {
       const res = await api.put(`/products/${editing.id}`, editing);
@@ -41,6 +63,11 @@ export default function AdminPanel() {
     }
   }
 
+  /**
+   * Создает новый товар через диалоговые окна браузера.
+   * <p>
+   * Пользователь вводит название, описание, цену и остаток товара.
+   */
   async function createNew() {
     const name = prompt('Название товара');
     if (!name) return;
@@ -56,6 +83,11 @@ export default function AdminPanel() {
     }
   }
 
+  /**
+   * Удаляет товар из каталога.
+   *
+   * @param {number} id идентификатор товара
+   */
   async function deleteProduct(id) {
     if (!window.confirm('Удалить товар?')) return;
     try {

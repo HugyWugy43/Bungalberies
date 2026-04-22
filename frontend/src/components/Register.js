@@ -2,18 +2,27 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+/**
+ * Страница регистрации нового пользователя.
+ * <p>
+ * Позволяет создать учетную запись в системе и затем перейти к странице входа.
+ */
 export default function Register() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [message, setMessage] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  /**
+   * Отправляет данные регистрации на сервер.
+   *
+   * @param {Event} e событие отправки формы
+   */
   const submit = async (e) => {
     e.preventDefault();
     try {
       await register(form.username, form.password);
       setMessage('Зарегистрировано. Выполняется вход...');
-      // Optionally auto-login after registration
       setTimeout(() => navigate('/login'), 800);
     } catch (err) {
       console.error(err);

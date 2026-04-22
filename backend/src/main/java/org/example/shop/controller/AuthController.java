@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * Контроллер аутентификации и регистрации пользователей.
+ * <p>
+ * Обеспечивает создание учетной записи и вход в систему с выдачей JWT-токена.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -17,12 +22,25 @@ public class AuthController {
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
 
+    /**
+     * Конструктор контроллера аутентификации.
+     *
+     * @param userRepo  репозиторий пользователей
+     * @param encoder   encoder для хеширования паролей
+     * @param jwtUtils  утилита для генерации JWT
+     */
     public AuthController(UserRepository userRepo, PasswordEncoder encoder, JwtUtils jwtUtils) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.jwtUtils = jwtUtils;
     }
 
+    /**
+     * Регистрирует нового пользователя.
+     *
+     * @param body JSON-данные с username, password и optional role
+     * @return сообщение о результате регистрации
+     */
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, String> body) {
         String username = body.get("username");
@@ -42,6 +60,12 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
+    /**
+     * Выполняет вход пользователя в систему и возвращает JWT-токен.
+     *
+     * @param body JSON-данные с username и password
+     * @return JWT-токен, имя пользователя и роль
+     */
     @PostMapping("/signin")
     public ResponseEntity<?> signin(@RequestBody Map<String, String> body) {
         String username = body.get("username");

@@ -1,3 +1,8 @@
+/**
+ * @file App.js
+ * @brief Главный компонент приложения с маршрутизацией
+ */
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import ProductList from './components/ProductList';
@@ -8,6 +13,10 @@ import AdminPanel from './components/AdminPanel';
 import { useCart } from './context/CartContext';
 import { useAuth } from './context/AuthContext';
 
+/**
+ * @component Header
+ * @brief Верхняя панель навигации приложения
+ */
 function Header() {
   const { cart } = useCart();
   const { user, logout } = useAuth();
@@ -17,6 +26,7 @@ function Header() {
       <Link to="/">Каталог</Link>
       <Link to="/cart">Корзина ({cart.length})</Link>
       <Link to="/admin">Админ</Link>
+
       <div style={{ marginLeft: 'auto' }}>
         {user ? (
           <>
@@ -34,6 +44,10 @@ function Header() {
   );
 }
 
+/**
+ * @component App
+ * @brief Корневой компонент приложения с маршрутизацией
+ */
 export default function App() {
   return (
     <BrowserRouter>

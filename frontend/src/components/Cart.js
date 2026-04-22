@@ -3,12 +3,23 @@ import { useCart } from '../context/CartContext';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Компонент корзины покупателя.
+ * <p>
+ * Отображает товары в корзине, позволяет изменять их количество,
+ * удалять позиции и оформлять заказ.
+ */
 export default function Cart() {
   const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
   const { user } = useAuth();
 
   const total = cart.reduce((s, p) => s + p.price * p.quantity, 0);
 
+  /**
+   * Оформляет заказ на основании содержимого корзины.
+   * <p>
+   * Передает список позиций на сервер и очищает корзину после успешного оформления.
+   */
   const checkout = async () => {
     if (!user) {
       alert('Нужно войти, чтобы оформить заказ.');

@@ -2,12 +2,20 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
 
+/**
+ * Компонент отображения каталога товаров.
+ * <p>
+ * Загружает список товаров с сервера и позволяет добавлять выбранные позиции в корзину.
+ */
 export default function ProductList() {
   const [products, setProducts] = useState([]);
   const { addToCart } = useCart();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  /**
+   * Загружает товары при монтировании компонента.
+   */
   useEffect(() => {
     setLoading(true);
     api.get('/products')
