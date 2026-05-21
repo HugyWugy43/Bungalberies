@@ -1,57 +1,78 @@
-<<<<<<< HEAD
 # Bungalberies
-=======
-# Online Shop Project
 
-This project is a web application with a backend, frontend, and PostgreSQL database. 
-It implements a main page, product catalog, shopping cart, and admin panel.
+Интернет-магазин с бэкендом (Java), фронтендом (React) и PostgreSQL.
 
-## Prerequisites
+## Требования
 
-- Java 17 (Temurin)
+- Java 17+
 - PostgreSQL
-- Node.js and npm (for frontend)
-- IntelliJ IDEA (for backend)
-- VS Code (for frontend)
+- Node.js и npm
 
-## Setup Instructions
+## Запуск
 
-### 1. Database
+### База данных
 
-1. Create a PostgreSQL database.
+```bash
+docker compose up -d db
+```
 
-2. Add initial data from the `resources` folder.
+### Бэкенд
 
-3. Configure database connection in `application_properties`.
+```bash
+cd backend
+.\mvnw.cmd spring-boot:run
+```
 
-### 2. Backend
+Бэкенд будет доступен на http://localhost:8080.
 
-1. Open the backend folder in IntelliJ IDEA (the folder containing `pom.xml`).
+### Фронтенд
 
-2. Run `ShopApplication.java`.
-
-3. You should see in logs:
-Tomcat started on port 8080
-
-4. Backend API is now running at:  
-[http://localhost:8080/api/products](http://localhost:8080/api/products)  
-Open this link in a browser to see the JSON response.
-
-### 3. Frontend
-
-1. Open the frontend folder in VS Code: `OnlineShop/frontend`.
-2. In the terminal, run:
+```bash
+cd frontend
 npm install
 npm start
-Frontend will open at http://localhost:3000.
+```
 
-4. What Works
-Product catalog
-Shopping cart
-User authentication
-Admin panel
+Фронтенд будет доступен на http://localhost:3000.
 
-Notes
-Backend must be running before starting the frontend.
-Make sure database contains initial data before running the backend.
->>>>>>> 2b0b5becde13333383021dcfd23f48e42f61ca1f
+## Тестирование
+
+```bash
+cd backend
+.\mvnw.cmd test
+```
+
+Тесты используют H2 in-memory БД (профиль `test`), поэтому внешняя БД не требуется.
+
+### Реализованные тесты (17 шт.)
+
+**AuthControllerTest** — проверка аутентификации:
+- `signup_success` — успешная регистрация нового пользователя
+- `signup_duplicate_username` — регистрация с уже существующим username
+- `signup_blank_username` — регистрация с пустым username
+- `signin_success` — успешная авторизация пользователя
+- `signin_invalid_password` — авторизация с неверным паролем
+
+**CartControllerTest** — проверка корзины:
+- `addToCart_success` — добавление товара в корзину
+- `updateQuantity_success` — изменение количества товара в корзине
+- `removeFromCart_success` — удаление товара из корзины
+- `getCart_empty` — просмотр пустой корзины
+
+**OrderControllerTest** — проверка заказов:
+- `placeOrder_success` — успешное оформление заказа
+- `placeGuestOrder_success` — оформление гостевого заказа
+- `getAllOrders_success` — просмотр истории заказов
+- `trackOrders_byEmail_success` — отслеживание заказа по email
+
+**ProductControllerTest** — проверка товаров и админ-панели:
+- `addProduct_admin_success` — добавление товара через админ-панель
+- `getAllProducts_success` — просмотр списка товаров
+- `updateProduct_admin_success` — обновление товара администратором
+- `deleteProduct_admin_success` — удаление товара администратором
+
+## Подключение к БД в контейнере
+
+```bash
+docker exec -it bungalberies-db psql -U shopuser -d postgres
+```

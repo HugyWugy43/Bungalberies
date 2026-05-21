@@ -3,17 +3,15 @@ package org.example.shop.controller;
 import org.example.shop.model.User;
 import org.example.shop.repository.UserRepository;
 import org.example.shop.security.JwtUtils;
+import org.example.shop.service.EmailService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Контроллер аутентификации и регистрации пользователей.
- * <p>
- * Обеспечивает создание учетной записи и вход в систему с выдачей JWT-токена.
- */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -21,51 +19,65 @@ public class AuthController {
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
+    private final EmailService emailService;
+    private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
 
-    /**
-     * Конструктор контроллера аутентификации.
-     *
-     * @param userRepo  репозиторий пользователей
-     * @param encoder   encoder для хеширования паролей
-     * @param jwtUtils  утилита для генерации JWT
-     */
-    public AuthController(UserRepository userRepo, PasswordEncoder encoder, JwtUtils jwtUtils) {
+    public AuthController(UserRepository userRepo, PasswordEncoder encoder, JwtUtils jwtUtils, EmailService emailService) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.jwtUtils = jwtUtils;
+        this.emailService = emailService;
     }
 
-    /**
-     * Регистрирует нового пользователя.
-     *
-     * @param body JSON-данные с username, password и optional role
-     * @return сообщение о результате регистрации
-     */
+    @PostMapping("/send-code")
+    public ResponseEntity<?> sendCode(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
+        }
+        String code = String.format("%06d", ThreadLocalRandom.current().nextInt(100000, 999999));
+        verificationCodes.put(email, code);
+        emailService.sendVerificationCode(email, code);
+        return ResponseEntity.ok(Map.of("message", "Code sent to email"));
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
+        String phone = body.get("phone");
+        String email = body.get("email");
+        String code = body.get("code");
         String role = body.getOrDefault("role", "ROLE_USER");
 
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("message", "username and password are required"));
+        }
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
+        }
+        if (code == null || code.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Verification code is required"));
+        }
+
+        String storedCode = verificationCodes.get(email);
+        if (storedCode == null || !storedCode.equals(code)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid verification code"));
         }
 
         if (userRepo.existsByUsername(username)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Username already taken"));
         }
 
+        verificationCodes.remove(email);
+
         User user = new User(username, encoder.encode(password), role);
+        user.setPhone(phone);
+        user.setEmail(email);
         userRepo.save(user);
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
-    /**
-     * Выполняет вход пользователя в систему и возвращает JWT-токен.
-     *
-     * @param body JSON-данные с username и password
-     * @return JWT-токен, имя пользователя и роль
-     */
     @PostMapping("/signin")
     public ResponseEntity<?> signin(@RequestBody Map<String, String> body) {
         String username = body.get("username");

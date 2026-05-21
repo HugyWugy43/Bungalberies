@@ -1,19 +1,11 @@
 package org.example.shop;
 
-import org.example.shop.model.Product;
-import org.example.shop.model.User;
-import org.example.shop.repository.ProductRepository;
-import org.example.shop.repository.UserRepository;
+import org.example.shop.model.*;
+import org.example.shop.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/**
- * Компонент инициализации тестовых данных.
- * <p>
- * При запуске приложения создает стандартных пользователей и набор
- * демонстрационных товаров, если они отсутствуют в базе данных.
- */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -21,13 +13,6 @@ public class DataInitializer implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Создает инициализатор с необходимыми зависимостями.
-     *
-     * @param userRepository     репозиторий пользователей
-     * @param productRepository  репозиторий товаров
-     * @param passwordEncoder    кодировщик паролей
-     */
     public DataInitializer(UserRepository userRepository,
                            ProductRepository productRepository,
                            PasswordEncoder passwordEncoder) {
@@ -36,17 +21,12 @@ public class DataInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Выполняет инициализацию данных при старте приложения.
-     *
-     * @param args аргументы запуска приложения
-     */
     @Override
     public void run(String... args) throws Exception {
         if (!userRepository.existsByUsername("admin")) {
             User admin = new User("admin", passwordEncoder.encode("adminpass"), "ROLE_ADMIN");
             userRepository.save(admin);
-            System.out.println("Created admin/adminpass");
+            System.out.println("Admin created: admin / adminpass");
         }
 
         if (!userRepository.existsByUsername("user")) {

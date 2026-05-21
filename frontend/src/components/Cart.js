@@ -1,66 +1,73 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
-/**
- * Компонент корзины покупателя.
- * <p>
- * Отображает товары в корзине, позволяет изменять их количество,
- * удалять позиции и оформлять заказ.
- */
 export default function Cart() {
-  const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { cart, clearCart, updateQuantity, removeFromCart, loading } = useCart();
 
   const total = cart.reduce((s, p) => s + p.price * p.quantity, 0);
 
-  /**
-   * Оформляет заказ на основании содержимого корзины.
-   * <p>
-   * Передает список позиций на сервер и очищает корзину после успешного оформления.
-   */
-  const checkout = async () => {
-    if (!user) {
-      alert('Нужно войти, чтобы оформить заказ.');
-      return;
-    }
-    const items = cart.map(p => ({ productId: p.id, quantity: p.quantity }));
-    try {
-      const res = await api.post('/orders', items);
-      alert('Заказ оформлен. Номер: ' + (res.data.id || '—'));
-      clearCart();
-    } catch (err) {
-      console.error(err);
-      alert('Ошибка при оформлении: ' + (err.response?.data || err.message));
-    }
-  };
+  if (loading) {
+    return (
+      <div className="page-wrapper">
+        <div className="loading"><div className="spinner" /> Загрузка корзины...</div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h2>Корзина</h2>
-      {cart.length === 0 && <p>Корзина пуста</p>}
-      {cart.map(p => (
-        <div key={p.id} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-          <div style={{ flex: 1 }}>
-            <div><strong>{p.name}</strong></div>
-            <div>{p.price} ₽ × {p.quantity} = {p.price * p.quantity} ₽</div>
-            <div style={{ marginTop: 6 }}>
-              <button onClick={() => updateQuantity(p.id, Math.max(1, p.quantity - 1))}>−</button>
-              <span style={{ margin: '0 8px' }}>{p.quantity}</span>
-              <button onClick={() => updateQuantity(p.id, p.quantity + 1)}>+</button>
-              <button onClick={() => removeFromCart(p.id)} style={{ marginLeft: 8 }}>Удалить</button>
+    <div className="page-wrapper page-wrapper-sm">
+      <h2 className="page-title">Корзина</h2>
+
+      {cart.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>Корзина пуста</p>}
+
+      {cart.map((p, i) => (
+        <div key={p.cartId || p.productId} className="cart-item" style={{ animationDelay: `${i * 0.05}s` }}>
+          <div className="cart-item__info">
+            <div style={{ fontWeight: 600 }}>{p.name}</div>
+            <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 2 }}>
+              {p.price} ₽ × {p.quantity} = {p.price * p.quantity} ₽
+            </div>
+            <div className="cart-item__controls" style={{ marginTop: 6 }}>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => updateQuantity(p.cartId || p.productId, Math.max(1, p.quantity - 1))}
+              >
+                −
+              </button>
+              <span className="cart-item__qty">{p.quantity}</span>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => updateQuantity(p.cartId || p.productId, p.quantity + 1)}
+              >
+                +
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                style={{ marginLeft: 8 }}
+                onClick={() => removeFromCart(p.cartId || p.productId)}
+              >
+                Удалить
+              </button>
             </div>
           </div>
         </div>
       ))}
-      <div style={{ marginTop: 12 }}>
-        <strong>Итого: {total} ₽</strong>
-      </div>
-      <div style={{ marginTop: 12 }}>
-        <button onClick={checkout} disabled={cart.length === 0}>Оформить заказ</button>
-        <button onClick={clearCart} disabled={cart.length === 0} style={{ marginLeft: 8 }}>Очистить</button>
-      </div>
+
+      {cart.length > 0 && (
+        <>
+          <div className="cart-total">Итого: {total} ₽</div>
+          <div className="cart-actions">
+            <button className="btn btn-secondary btn-lg" onClick={() => navigate('/checkout')}>
+              Оформить заказ
+            </button>
+            <button className="btn btn-outline" onClick={clearCart}>
+              Очистить
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

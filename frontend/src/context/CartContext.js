@@ -1,77 +1,145 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../services/api';
+import { useAuth } from './AuthContext';
 
-/**
- * Контекст корзины покупателя.
- * <p>
- * Содержит текущее состояние корзины и методы для добавления,
- * удаления и изменения количества товаров.
- */
 const CartContext = createContext();
 
-/**
- * Провайдер контекста корзины.
- *
- * @param {Object} props свойства компонента
- * @param {React.ReactNode} props.children дочерние элементы
- */
+const GUEST_STORAGE_KEY = 'bungalberies_guest_cart';
+
+function loadGuestCart() {
+  try {
+    const data = localStorage.getItem(GUEST_STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveGuestCart(cart) {
+  localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(cart));
+}
+
 export function CartProvider({ children }) {
+  const { user } = useAuth();
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  /**
-   * Добавляет товар в корзину.
-   * <p>
-   * Если товар уже присутствует в корзине, увеличивает его количество.
-   *
-   * @param {Object} product объект товара
-   */
-  function addToCart(product) {
-    setCart(prev => {
-      const found = prev.find(p => p.id === product.id);
-      if (found) {
-        return prev.map(p => p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p);
+  const isGuest = !user;
+
+  useEffect(() => {
+    if (isGuest) {
+      setCart(loadGuestCart());
+      setLoading(false);
+    } else {
+      api.get('/cart')
+        .then(res => {
+          const items = res.data.map(item => ({
+            id: item.id,
+            cartId: item.id,
+            productId: item.product?.id || item.productId,
+            name: item.product?.name || item.productName,
+            price: item.product?.price || item.price,
+            quantity: item.quantity
+          }));
+          setCart(items);
+        })
+        .catch(() => setCart([]))
+        .finally(() => setLoading(false));
+    }
+  }, [user, isGuest]);
+
+  useEffect(() => {
+    if (isGuest) {
+      saveGuestCart(cart);
+    }
+  }, [cart, isGuest]);
+
+  const addToCart = useCallback(async (product) => {
+    if (isGuest) {
+      setCart(prev => {
+        const found = prev.find(p => p.productId === product.id);
+        if (found) {
+          return prev.map(p => p.productId === product.id ? { ...p, quantity: p.quantity + 1 } : p);
+        }
+        return [...prev, { productId: product.id, name: product.name, price: product.price, quantity: 1 }];
+      });
+      return;
+    }
+
+    try {
+      const res = await api.post('/cart', { productId: product.id, quantity: 1 });
+      const data = res.data;
+      if (data.guest) {
+        setCart(prev => {
+          const found = prev.find(p => p.productId === product.id);
+          if (found) {
+            return prev.map(p => p.productId === product.id ? { ...p, quantity: p.quantity + 1 } : p);
+          }
+          return [...prev, { productId: product.id, name: data.name, price: data.price, quantity: data.quantity }];
+        });
+      } else {
+        setCart(prev => {
+          const found = prev.find(p => p.productId === product.id);
+          if (found) {
+            return prev.map(p => p.productId === product.id ? { ...p, quantity: p.quantity + 1, cartId: data.id } : p);
+          }
+          return [...prev, { id: data.id, cartId: data.id, productId: product.id, name: product.name, price: product.price, quantity: 1 }];
+        });
       }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-  }
+    } catch (err) {
+      console.error('Failed to add to cart:', err);
+    }
+  }, [isGuest]);
 
-  /**
-   * Удаляет товар из корзины.
-   *
-   * @param {number} productId идентификатор товара
-   */
-  function removeFromCart(productId) {
-    setCart(prev => prev.filter(p => p.id !== productId));
-  }
+  const removeFromCart = useCallback(async (cartId) => {
+    if (isGuest) {
+      setCart(prev => prev.filter(p => p.cartId !== cartId && p.productId !== cartId));
+      return;
+    }
 
-  /**
-   * Изменяет количество выбранного товара.
-   *
-   * @param {number} productId идентификатор товара
-   * @param {number} qty новое количество
-   */
-  function updateQuantity(productId, qty) {
-    setCart(prev => prev.map(p => p.id === productId ? { ...p, quantity: qty } : p));
-  }
+    try {
+      await api.delete(`/cart/${cartId}`);
+      setCart(prev => prev.filter(p => p.cartId !== cartId));
+    } catch (err) {
+      console.error('Failed to remove from cart:', err);
+    }
+  }, [isGuest]);
 
-  /**
-   * Очищает корзину полностью.
-   */
-  function clearCart() {
-    setCart([]);
-  }
+  const updateQuantity = useCallback(async (cartId, qty) => {
+    if (isGuest) {
+      setCart(prev => prev.map(p => (p.cartId === cartId || p.productId === cartId) ? { ...p, quantity: qty } : p));
+      return;
+    }
+
+    try {
+      await api.put(`/cart/${cartId}`, { quantity: qty });
+      setCart(prev => prev.map(p => p.cartId === cartId ? { ...p, quantity: qty } : p));
+    } catch (err) {
+      console.error('Failed to update quantity:', err);
+    }
+  }, [isGuest]);
+
+  const clearCart = useCallback(async () => {
+    if (isGuest) {
+      setCart([]);
+      return;
+    }
+
+    try {
+      await api.delete('/cart');
+      setCart([]);
+    } catch (err) {
+      console.error('Failed to clear cart:', err);
+    }
+  }, [isGuest]);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, loading }}>
       {children}
     </CartContext.Provider>
   );
 }
 
-/**
- * Хук для получения контекста корзины.
- *
- * @returns {Object} объект контекста CartContext
- */
 export function useCart() {
   return useContext(CartContext);
 }

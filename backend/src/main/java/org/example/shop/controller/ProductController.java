@@ -78,7 +78,8 @@ public class ProductController {
             ex.setName(p.getName());
             ex.setDescription(p.getDescription());
             ex.setPrice(p.getPrice());
-            ex.setStock(p.getStock());
+            ex.setQuantity(p.getQuantity());
+            ex.setImageUrl(p.getImageUrl());
             Product saved = repo.save(ex);
             return ResponseEntity.ok(saved);
         }).orElseGet(() -> {

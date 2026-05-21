@@ -47,3 +47,6 @@ build/
 # Doxygen
 docs/html/
 docs/latex/
+
+# Environment
+.env

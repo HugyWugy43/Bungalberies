@@ -1,47 +1,47 @@
 package org.example.shop.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Сущность позиции заказа.
- * <p>
- * Содержит сведения о товаре, его цене и количестве в заказе.
+ * Промежуточная таблица для связи Order N-N Product.
  */
 @Entity
 @Table(name = "order_items")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class OrderItem {
 
-    /** Уникальный идентификатор позиции. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_item_id")
     private Long id;
 
-    /** Идентификатор товара. */
-    private Long productId;
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
-    /** Название товара на момент оформления заказа. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false)
+    private Product product;
+
+    @Column(name = "product_name")
     private String productName;
 
-    /** Цена единицы товара. */
+    @Column(name = "price", nullable = false)
     private double price;
 
-    /** Количество товара в заказе. */
+    @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    /** Конструктор по умолчанию. */
     public OrderItem() {}
 
-    /**
-     * Создает позицию заказа.
-     *
-     * @param productId   идентификатор товара
-     * @param productName название товара
-     * @param price       цена товара
-     * @param quantity    количество
-     */
-    public OrderItem(Long productId, String productName, double price, int quantity) {
-        this.productId = productId;
-        this.productName = productName;
+    public OrderItem(Order order, Product product, double price, int quantity) {
+        this.order = order;
+        this.product = product;
+        this.productName = product.getName();
         this.price = price;
         this.quantity = quantity;
     }
@@ -49,8 +49,11 @@ public class OrderItem {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
+    public Order getOrder() { return order; }
+    public void setOrder(Order order) { this.order = order; }
+
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
 
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }
