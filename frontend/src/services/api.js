@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const apiRoot = process.env.REACT_APP_API_URL;
+const baseURL = apiRoot ? `${apiRoot.replace(/\/+$/, '')}/api` : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: { 'Content-Type': 'application/json' }
 });
 
