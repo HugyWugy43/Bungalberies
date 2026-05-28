@@ -61,9 +61,11 @@ export default function Register() {
     setLoading(true);
     try {
       const res = await sendCode(email);
-      setMessage(`Код отправлен на ${email}`);
-      if (res.code) {
+      if (res.devMode) {
         setDevCode(res.code);
+        setMessage('Почта не настроена. Используй код ниже:');
+      } else {
+        setMessage(`Код отправлен на ${email}`);
       }
     } catch (err) {
       setMessage('Ошибка при отправке кода');

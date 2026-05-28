@@ -14,6 +14,7 @@ public class TestEmailService extends EmailService {
     }
 
     @Override
-    public void sendVerificationCode(String to, String code) {
+    public boolean sendVerificationCode(String to, String code) {
+        return true;
     }
 }

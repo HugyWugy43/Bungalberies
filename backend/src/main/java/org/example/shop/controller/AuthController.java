@@ -37,8 +37,16 @@ public class AuthController {
         }
         String code = String.format("%06d", ThreadLocalRandom.current().nextInt(100000, 999999));
         verificationCodes.put(email, code);
-        emailService.sendVerificationCode(email, code);
-        return ResponseEntity.ok(Map.of("message", "Code sent to email", "code", code));
+        boolean sent = emailService.sendVerificationCode(email, code);
+        if (sent) {
+            return ResponseEntity.ok(Map.of("message", "Code sent to email"));
+        } else {
+            return ResponseEntity.ok(Map.of(
+                    "message", "Code sent to email",
+                    "code", code,
+                    "devMode", true
+            ));
+        }
     }
 
     @PostMapping("/signup")
