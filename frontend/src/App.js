@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import ProductList from './components/ProductList';
+import ProductDetail from './components/ProductDetail';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import OrderTrack from './components/OrderTrack';
@@ -146,6 +147,9 @@ function Header() {
           <NavLink to="/track" className={linkClass}>
             Отследить
           </NavLink>
+          <NavLink to="/admin" className={linkClass}>
+            Админ
+          </NavLink>
         </nav>
 
         <div className="site-header__right">
@@ -183,6 +187,7 @@ function AppLayout() {
       <main>
         <Routes>
           <Route path="/" element={<PageTransition><ProductList /></PageTransition>} />
+          <Route path="/product/:id" element={<PageTransition><ProductDetail /></PageTransition>} />
           <Route path="/cart" element={<PageTransition><Cart /></PageTransition>} />
           <Route path="/checkout" element={<PageTransition><Checkout /></PageTransition>} />
           <Route path="/track" element={<PageTransition><OrderTrack /></PageTransition>} />

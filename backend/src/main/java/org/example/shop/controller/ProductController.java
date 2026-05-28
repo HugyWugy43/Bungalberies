@@ -83,6 +83,8 @@ public class ProductController {
             ex.setPrice(p.getPrice());
             ex.setQuantity(p.getQuantity());
             ex.setImageUrl(p.getImageUrl());
+            if (p.getPhoto() != null) ex.setPhoto(p.getPhoto());
+            if (p.getCharacteristics() != null) ex.setCharacteristics(p.getCharacteristics());
             Product saved = repo.save(ex);
             return ResponseEntity.ok(saved);
         }).orElseGet(() -> {

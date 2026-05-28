@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
 
@@ -15,6 +16,7 @@ export default function RecommendationsBar() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     api.get('/products')
@@ -35,7 +37,8 @@ export default function RecommendationsBar() {
       <div className="rec-bar__track">
         <div className="rec-bar__scroll">
           {doubled.map((item, i) => (
-            <div key={`${item.id}-${i}`} className="rec-card">
+            <div key={`${item.id}-${i}`} className="rec-card" style={{ cursor: 'pointer' }}
+                 onClick={() => navigate(`/product/${item.id}`)}>
               <div className="rec-card__title">{item.name}</div>
               <div className="rec-card__price">{item.price} ₽</div>
               <button

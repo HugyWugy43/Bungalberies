@@ -64,6 +64,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/cart").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/cart").permitAll()

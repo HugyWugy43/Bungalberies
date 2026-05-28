@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -14,6 +14,7 @@ export default function ProductList() {
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
@@ -58,7 +59,8 @@ export default function ProductList() {
       )}
       <div className="product-grid">
         {filteredProducts.map(p => (
-          <div key={p.id} className="card card-hover product-card">
+          <div key={p.id} className="card card-hover product-card" style={{ cursor: 'pointer' }}
+               onClick={() => navigate(`/product/${p.id}`)}>
 
             {p.quantity === 0 && (
               <div className="product-card__overlay">
@@ -86,7 +88,7 @@ export default function ProductList() {
             </div>
 
             <button
-              onClick={() => handleAddToCart(p)}
+              onClick={(e) => { e.stopPropagation(); handleAddToCart(p); }}
               disabled={p.quantity === 0}
               className={`btn ${p.quantity === 0 ? '' : 'btn-primary'}`}
               style={{ width: '100%', opacity: p.quantity === 0 ? 0.5 : 1 }}

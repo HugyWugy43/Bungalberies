@@ -31,6 +31,13 @@ public class Product {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Lob
+    @Column(name = "photo", columnDefinition = "TEXT")
+    private String photo;
+
+    @Column(name = "characteristics", columnDefinition = "TEXT")
+    private String characteristics;
+
     public Product() {}
 
     public Product(String name, String description, double price, int quantity) {
@@ -57,4 +64,10 @@ public class Product {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getPhoto() { return photo; }
+    public void setPhoto(String photo) { this.photo = photo; }
+
+    public String getCharacteristics() { return characteristics; }
+    public void setCharacteristics(String characteristics) { this.characteristics = characteristics; }
 }

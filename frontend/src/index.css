@@ -518,6 +518,101 @@ button {
 .product-card__stock--in { color: var(--success); font-weight: 500; }
 .product-card__stock--out { color: var(--danger); font-weight: 500; }
 
+/* ── Product Detail ── */
+.product-detail {
+  display: flex;
+  gap: 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  animation: fadeSlideIn 0.3s ease;
+}
+.product-detail__image {
+  flex-shrink: 0;
+  width: 360px;
+  max-width: 100%;
+}
+.product-detail__image img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  object-fit: contain;
+  max-height: 360px;
+}
+.product-detail__info {
+  flex: 1;
+  min-width: 0;
+}
+.product-detail__name {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+}
+.product-detail__price {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+.product-detail__stock {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.product-detail__stock.in { color: var(--success); }
+.product-detail__stock.out { color: var(--danger); }
+.product-detail__desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0 0 16px;
+}
+.product-detail__chars {
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+.product-detail__chars h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .product-detail {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+  .product-detail__image {
+    width: 100%;
+  }
+  .product-detail__name {
+    font-size: 20px;
+  }
+  .product-detail__price {
+    font-size: 22px;
+  }
+}
+
+/* ── Admin Card ── */
+.admin-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.admin-actions {
+  display: flex;
+  gap: 8px;
+}
+.admin-actions .btn {
+  flex: 1;
+}
+
 /* ── Wishlist ── */
 .wishlist-btn {
   background: none;
@@ -604,24 +699,6 @@ button {
   padding: 16px;
   background: var(--border-light);
   border-radius: var(--radius);
-}
-
-/* ── Admin ── */
-.admin-card {
-  border: 1px solid var(--border);
-  padding: 12px;
-  margin-bottom: 8px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-card);
-  transition: box-shadow var(--transition);
-}
-.admin-card:hover {
-  box-shadow: var(--shadow-sm);
-}
-.admin-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
 }
 
 /* ── Recommendations Bar ── */
