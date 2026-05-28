@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 
-const PHONE_REGEX = /^\+?[0-9]{10,15}$/;
-
 function calcStrength(pw) {
   let score = 0;
   if (pw.length >= 8) score += 1;
@@ -24,11 +22,9 @@ const LEVELS = [
 
 export default function Register() {
   const [form, setForm] = useState({ username: '', password: '', email: '', phone: '' });
-  const [code, setCode] = useState('');
   const [message, setMessage] = useState('');
-  const [devCode, setDevCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register, sendCode } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -47,39 +43,8 @@ export default function Register() {
     { label: 'Есть цифры (0-9)', ok: /[0-9]/.test(form.password) },
   ], [form.password]);
 
-  const handleSendCode = async () => {
-    const phone = form.phone.trim();
-    if (!phone) {
-      setMessage('Укажите номер телефона');
-      return;
-    }
-    if (!PHONE_REGEX.test(phone)) {
-      setMessage('Некорректный формат номера (+79991234567)');
-      return;
-    }
-    setMessage('');
-    setLoading(true);
-    try {
-      const res = await sendCode(phone);
-      if (res.devMode) {
-        setDevCode(res.code);
-        setMessage('SMS не настроено. Используй код ниже:');
-      } else {
-        setMessage(`Код отправлен на ${phone}`);
-      }
-    } catch (err) {
-      setMessage('Ошибка при отправке кода');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const submit = async (e) => {
     e.preventDefault();
-    if (!code.trim()) {
-      setMessage('Введите код подтверждения');
-      return;
-    }
     setMessage('');
     setLoading(true);
     try {
@@ -87,8 +52,7 @@ export default function Register() {
         form.username.trim(),
         form.password,
         form.phone.trim(),
-        form.email.trim(),
-        code.trim()
+        form.email.trim()
       );
       setMessage('Регистрация успешна!');
       setTimeout(() => navigate('/login'), 1000);
@@ -161,34 +125,13 @@ export default function Register() {
           />
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="reg-code">Код из SMS</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              id="reg-code" className="form-input"
-              placeholder="Введите 6 цифр"
-              value={code} onChange={e => setCode(e.target.value)}
-              maxLength={6} required style={{ flex: 1 }}
-            />
-            <button type="button" className="btn btn-outline" onClick={handleSendCode} disabled={loading}
-              style={{ whiteSpace: 'nowrap' }}>
-              {loading ? '...' : 'Получить'}
-            </button>
-          </div>
-          {devCode && (
-            <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-muted)', background: 'var(--border-light)', padding: '6px 10px', borderRadius: 4 }}>
-              Код для разработки: <strong>{devCode}</strong> (SMS не настроено)
-            </div>
-          )}
-        </div>
-
         <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}
           disabled={loading}>
           {loading ? 'Регистрация...' : 'Зарегистрироваться'}
         </button>
 
         {message && (
-          <div className={`alert ${message.includes('успеш') || message.includes('отправлен') ? 'alert-success' : 'alert-error'}`}
+          <div className={`alert ${message.includes('успеш') ? 'alert-success' : 'alert-error'}`}
                style={{ marginTop: 12 }}>
             {message}
           </div>

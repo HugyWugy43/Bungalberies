@@ -3,14 +3,11 @@ package org.example.shop.controller;
 import org.example.shop.model.User;
 import org.example.shop.repository.UserRepository;
 import org.example.shop.security.JwtUtils;
-import org.example.shop.service.SmsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,34 +16,11 @@ public class AuthController {
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
-    private final SmsService smsService;
-    private final Map<String, String> verificationCodes = new ConcurrentHashMap<>();
 
-    public AuthController(UserRepository userRepo, PasswordEncoder encoder, JwtUtils jwtUtils, SmsService smsService) {
+    public AuthController(UserRepository userRepo, PasswordEncoder encoder, JwtUtils jwtUtils) {
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.jwtUtils = jwtUtils;
-        this.smsService = smsService;
-    }
-
-    @PostMapping("/send-code")
-    public ResponseEntity<?> sendCode(@RequestBody Map<String, String> body) {
-        String phone = body.get("phone");
-        if (phone == null || phone.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Phone is required"));
-        }
-        String code = String.format("%06d", ThreadLocalRandom.current().nextInt(100000, 999999));
-        verificationCodes.put(phone, code);
-        boolean sent = smsService.sendCode(phone, code);
-        if (sent) {
-            return ResponseEntity.ok(Map.of("message", "Code sent to phone"));
-        } else {
-            return ResponseEntity.ok(Map.of(
-                    "message", "Code sent to phone",
-                    "code", code,
-                    "devMode", true
-            ));
-        }
     }
 
     @PostMapping("/signup")
@@ -55,7 +29,6 @@ public class AuthController {
         String password = body.get("password");
         String phone = body.get("phone");
         String email = body.get("email");
-        String code = body.get("code");
         String role = body.getOrDefault("role", "ROLE_USER");
 
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
@@ -64,20 +37,10 @@ public class AuthController {
         if (phone == null || phone.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Phone is required"));
         }
-        if (code == null || code.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Verification code is required"));
-        }
-
-        String storedCode = verificationCodes.get(phone);
-        if (storedCode == null || !storedCode.equals(code)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Invalid verification code"));
-        }
 
         if (userRepo.existsByUsername(username)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Username already taken"));
         }
-
-        verificationCodes.remove(phone);
 
         User user = new User(username, encoder.encode(password), role);
         user.setPhone(phone);

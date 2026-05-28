@@ -34,18 +34,13 @@ export function AuthProvider({ children }) {
     setRole(null);
   }
 
-  async function sendCode(phone) {
-    const res = await api.post('/auth/send-code', { phone });
-    return res.data;
-  }
-
-  async function register(username, password, phone, email, code) {
-    const res = await api.post('/auth/signup', { username, password, phone, email, code });
+  async function register(username, password, phone, email) {
+    const res = await api.post('/auth/signup', { username, password, phone, email });
     return res.data;
   }
 
   return (
-    <AuthContext.Provider value={{ user, role, login, logout, register, sendCode }}>
+    <AuthContext.Provider value={{ user, role, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );
