@@ -24,15 +24,11 @@ function Header() {
 
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [suggestions, setSuggestions] = useState([]);
-  const [allProducts, setAllProducts] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    api.get('/products').then(res => setAllProducts(res.data)).catch(() => {});
-  }, []);
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     if (query.trim().length === 0) {
@@ -40,14 +36,18 @@ function Header() {
       setShowDropdown(false);
       return;
     }
-    const q = query.toLowerCase();
-    const matches = allProducts.filter(p =>
-      p.name.toLowerCase().includes(q)
-    ).slice(0, 8);
-    setSuggestions(matches);
-    setShowDropdown(matches.length > 0);
-    setSelectedIdx(-1);
-  }, [query, allProducts]);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      api.get(`/products/search?q=${encodeURIComponent(query.trim())}`)
+        .then(res => {
+          setSuggestions(res.data.slice(0, 8));
+          setShowDropdown(res.data.length > 0);
+          setSelectedIdx(-1);
+        })
+        .catch(() => {});
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [query]);
 
   useEffect(() => {
     function handleClick(e) {

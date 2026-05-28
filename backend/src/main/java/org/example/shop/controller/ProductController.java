@@ -27,14 +27,17 @@ public class ProductController {
         this.repo = repo;
     }
 
-    /**
-     * Возвращает список всех товаров.
-     *
-     * @return список товаров
-     */
     @GetMapping
-    public List<Product> all() {
+    public List<Product> all(@RequestParam(value = "q", required = false) String query) {
+        if (query != null && !query.isBlank()) {
+            return repo.findByNameContainingIgnoreCase(query);
+        }
         return repo.findAll();
+    }
+
+    @GetMapping("/search")
+    public List<Product> search(@RequestParam("q") String query) {
+        return repo.findByNameContainingIgnoreCase(query);
     }
 
     /**
