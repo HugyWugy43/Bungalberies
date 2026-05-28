@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -11,6 +12,8 @@ export default function ProductList() {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
 
   useEffect(() => {
     setLoading(true);
@@ -18,6 +21,15 @@ export default function ProductList() {
       .then(res => { setProducts(res.data); setLoading(false); })
       .catch(err => { setError(err.message || 'Ошибка загрузки'); setLoading(false); });
   }, []);
+
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return products;
+    const q = searchQuery.toLowerCase();
+    return products.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.description && p.description.toLowerCase().includes(q))
+    );
+  }, [products, searchQuery]);
 
   const handleAddToCart = useCallback((product) => {
     setProducts(prev => prev.map(p =>
@@ -38,9 +50,14 @@ export default function ProductList() {
 
   return (
     <div className="page-wrapper">
-      <h2 className="page-title">Каталог</h2>
+      <h2 className="page-title">
+        {searchQuery ? `Результаты поиска: «${searchQuery}»` : 'Каталог'}
+      </h2>
+      {searchQuery && filteredProducts.length === 0 && (
+        <div className="alert alert-info">Ничего не найдено</div>
+      )}
       <div className="product-grid">
-        {products.map(p => (
+        {filteredProducts.map(p => (
           <div key={p.id} className="card card-hover product-card">
 
             {p.quantity === 0 && (

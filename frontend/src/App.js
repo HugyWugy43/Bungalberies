@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import ProductList from './components/ProductList';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
@@ -13,11 +13,83 @@ import PageTransition from './components/ui/PageTransition';
 import { useCart } from './context/CartContext';
 import { useAuth } from './context/AuthContext';
 import { useWishlist } from './context/WishlistContext';
+import api from './services/api';
 
 function Header() {
   const { cart } = useCart();
   const { user, logout } = useAuth();
   const { wishlist } = useWishlist();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [suggestions, setSuggestions] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
+  const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    api.get('/products').then(res => setAllProducts(res.data)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (query.trim().length === 0) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+    const q = query.toLowerCase();
+    const matches = allProducts.filter(p =>
+      p.name.toLowerCase().includes(q)
+    ).slice(0, 8);
+    setSuggestions(matches);
+    setShowDropdown(matches.length > 0);
+    setSelectedIdx(-1);
+  }, [query, allProducts]);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target) &&
+          inputRef.current && !inputRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const doSearch = useCallback((term) => {
+    setShowDropdown(false);
+    if (term.trim()) {
+      navigate(`/?q=${encodeURIComponent(term.trim())}`);
+    } else {
+      navigate('/');
+    }
+  }, [navigate]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (selectedIdx >= 0 && suggestions[selectedIdx]) {
+      doSearch(suggestions[selectedIdx].name);
+    } else {
+      doSearch(query);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (!showDropdown) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIdx(i => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIdx(i => Math.max(i - 1, 0));
+    } else if (e.key === 'Escape') {
+      setShowDropdown(false);
+    }
+  };
 
   const linkClass = ({ isActive }) => isActive ? 'active' : '';
 
@@ -27,6 +99,35 @@ function Header() {
         <NavLink to="/" className="site-header__logo">
           Магазин
         </NavLink>
+
+        <form className="search-bar" onSubmit={handleSubmit}>
+          <input
+            ref={inputRef}
+            type="text"
+            className="search-bar__input"
+            placeholder="Поиск товаров..."
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
+            onKeyDown={handleKeyDown}
+          />
+          <button type="submit" className="search-bar__btn">🔍</button>
+          {showDropdown && (
+            <div className="search-bar__dropdown" ref={dropdownRef}>
+              {suggestions.map((p, i) => (
+                <div
+                  key={p.id}
+                  className={`search-bar__item ${i === selectedIdx ? 'search-bar__item--active' : ''}`}
+                  onClick={() => { setQuery(p.name); doSearch(p.name); }}
+                  onMouseEnter={() => setSelectedIdx(i)}
+                >
+                  <span className="search-bar__item-name">{p.name}</span>
+                  <span className="search-bar__item-price">{p.price} ₽</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </form>
 
         <nav className="site-header__nav">
           <NavLink to="/" className={linkClass} end>
