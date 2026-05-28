@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^\+?[0-9]{10,15}$/;
 
 function calcStrength(pw) {
   let score = 0;
@@ -48,24 +48,24 @@ export default function Register() {
   ], [form.password]);
 
   const handleSendCode = async () => {
-    const email = form.email.trim();
-    if (!email) {
-      setMessage('Укажите email');
+    const phone = form.phone.trim();
+    if (!phone) {
+      setMessage('Укажите номер телефона');
       return;
     }
-    if (!EMAIL_REGEX.test(email)) {
-      setMessage('Некорректный формат email');
+    if (!PHONE_REGEX.test(phone)) {
+      setMessage('Некорректный формат номера (+79991234567)');
       return;
     }
     setMessage('');
     setLoading(true);
     try {
-      const res = await sendCode(email);
+      const res = await sendCode(phone);
       if (res.devMode) {
         setDevCode(res.code);
-        setMessage('Почта не настроена. Используй код ниже:');
+        setMessage('SMS не настроено. Используй код ниже:');
       } else {
-        setMessage(`Код отправлен на ${email}`);
+        setMessage(`Код отправлен на ${phone}`);
       }
     } catch (err) {
       setMessage('Ошибка при отправке кода');
@@ -144,25 +144,25 @@ export default function Register() {
         </div>
 
         <div className="form-group">
-          <label className="form-label" htmlFor="reg-email">Email *</label>
+          <label className="form-label" htmlFor="reg-phone">Номер телефона *</label>
+          <input
+            id="reg-phone" name="phone" className="form-input" type="tel"
+            placeholder="+79991234567"
+            value={form.phone} onChange={handleChange} required
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="reg-email">Email (необязательно)</label>
           <input
             id="reg-email" name="email" className="form-input" type="email"
             placeholder="ivan@example.com"
-            value={form.email} onChange={handleChange} required
+            value={form.email} onChange={handleChange}
           />
         </div>
 
         <div className="form-group">
-          <label className="form-label" htmlFor="reg-phone">Номер телефона (необязательно)</label>
-          <input
-            id="reg-phone" name="phone" className="form-input" type="tel"
-            placeholder="+7 (999) 123-45-67"
-            value={form.phone} onChange={handleChange}
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label" htmlFor="reg-code">Код из письма</label>
+          <label className="form-label" htmlFor="reg-code">Код из SMS</label>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
               id="reg-code" className="form-input"
@@ -177,7 +177,7 @@ export default function Register() {
           </div>
           {devCode && (
             <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-muted)', background: 'var(--border-light)', padding: '6px 10px', borderRadius: 4 }}>
-              Код для разработки: <strong>{devCode}</strong> (SMTP не настроен)
+              Код для разработки: <strong>{devCode}</strong> (SMS не настроено)
             </div>
           )}
         </div>

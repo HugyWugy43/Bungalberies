@@ -40,7 +40,7 @@ class AuthControllerTest {
     @Autowired
     private AuthController authController;
 
-    private String testEmail = "test@example.com";
+    private String testPhone = "+79991234567";
     private String testCode;
 
     @BeforeEach
@@ -48,26 +48,26 @@ class AuthControllerTest {
         userRepository.deleteAll();
     }
 
-    private void sendCode(String email) throws Exception {
+    private void sendCode(String phone) throws Exception {
         mockMvc.perform(post("/api/auth/send-code")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("email", email))))
+                        .content(objectMapper.writeValueAsString(Map.of("phone", phone))))
                 .andExpect(status().isOk());
         @SuppressWarnings("unchecked")
         Map<String, String> codes = (Map<String, String>) ReflectionTestUtils.getField(
                 authController, "verificationCodes");
-        testCode = codes.get(email);
+        testCode = codes.get(phone);
     }
 
     @Test
     @DisplayName("Кейс: Успешная регистрация нового пользователя")
     void signup_success() throws Exception {
-        sendCode(testEmail);
+        sendCode(testPhone);
 
         Map<String, String> request = Map.of(
                 "username", "newuser",
                 "password", "password123",
-                "email", testEmail,
+                "phone", testPhone,
                 "code", testCode
         );
 
@@ -81,14 +81,14 @@ class AuthControllerTest {
     @Test
     @DisplayName("Кейс: Регистрация с уже существующим username")
     void signup_duplicate_username() throws Exception {
-        sendCode(testEmail);
+        sendCode(testPhone);
         User existingUser = new User("existinguser", passwordEncoder.encode("password123"), "ROLE_USER");
         userRepository.save(existingUser);
 
         Map<String, String> request = Map.of(
                 "username", "existinguser",
                 "password", "password123",
-                "email", testEmail,
+                "phone", testPhone,
                 "code", testCode
         );
 

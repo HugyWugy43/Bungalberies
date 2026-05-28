@@ -34,8 +34,8 @@ export function AuthProvider({ children }) {
     setRole(null);
   }
 
-  async function sendCode(email) {
-    const res = await api.post('/auth/send-code', { email });
+  async function sendCode(phone) {
+    const res = await api.post('/auth/send-code', { phone });
     return res.data;
   }
 
