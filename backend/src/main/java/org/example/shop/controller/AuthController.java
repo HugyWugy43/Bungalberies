@@ -38,7 +38,7 @@ public class AuthController {
         String code = String.format("%06d", ThreadLocalRandom.current().nextInt(100000, 999999));
         verificationCodes.put(email, code);
         emailService.sendVerificationCode(email, code);
-        return ResponseEntity.ok(Map.of("message", "Code sent to email"));
+        return ResponseEntity.ok(Map.of("message", "Code sent to email", "code", code));
     }
 
     @PostMapping("/signup")
