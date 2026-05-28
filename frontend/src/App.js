@@ -97,7 +97,7 @@ function Header() {
     <header className="site-header">
       <div className="site-header__inner">
         <NavLink to="/" className="site-header__logo">
-          Магазин
+          Bungalberies
         </NavLink>
 
         <form className="search-bar" onSubmit={handleSubmit}>
